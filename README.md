@@ -5,7 +5,7 @@ I've been using ZFS almost since it's arrival on the open source scene, starting
 
 ## Index
 
-* [Sonarr/Radarr/Lidarr](https://github.com/teambvd/unraid-zfs-docs/containers/sonarrRadarrLidarr.md)
-* [Ombi](https://github.com/teambvd/unraid-zfs-docs/containers/ombi.md)
+* [Sonarr/Radarr/Lidarr](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
+* [Ombi](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/ombi.md)
 * Postgres
 * Nextcloud
