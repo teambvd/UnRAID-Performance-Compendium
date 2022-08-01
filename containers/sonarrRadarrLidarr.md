@@ -1,6 +1,8 @@
 # ***Sonarr / Lidarr / Radarr on ZFS***
 
-Reference information (my 'workloads'):
+## Reference information 
+
+(My 'workloads'):
 
 > * Sonarr - `259MB` - 31,689 Episodes 
 > * Radarr - `115MB` - 2460 Movies
