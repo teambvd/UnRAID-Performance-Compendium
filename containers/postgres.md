@@ -56,7 +56,7 @@ There are several broad strokes I take with regards to any database implementati
 * Configure the dataset where your postgres data will reside with properties tuned specifically for pg's read/write behavior:
  
   ```bash
-zfs set compression=zstd-3 recordsize=16K atime=off logbias=throughput primarycache=metadata redundantmetadata=most zpool/dataset
+  zfs set compression=zstd-3 recordsize=16K atime=off logbias=throughput primarycache=metadata redundantmetadata=most zpool/dataset
   ```
 
 As with SQLite, we use the same compression and logbias settings, but this time we're setting the primarycache to `metadata`. This means we're caching the filesystem pointers that say 'this is where the data is', but not the data itself. 
@@ -71,11 +71,10 @@ As with SQLite, we use the same compression and logbias settings, but this time 
 
   The above is a global parameter (see [github docs](https://openzfs.github.io/openzfs-docs/Performance%20and%20Tuning/Module%20Parameters.html#zfs-txg-timeout))- even if the pool you plan to put your DB on is redundant, should you have any other non-redundant pools, recommend avoiding this setting. While it'll likely help performance, in combination with the other settings we're using (both above and below), there's an increased risk (however small) of data loss in certain circumestances.
 
-<div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc'>
+<div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc;'>
 <span>
 <p style='margin-top:0.2em; text-align:left'>
-<b>NOTE</b></p>
-<p style='margin-left:0.2em;'>
+<b>NOTE</b>
 All of the settings mentioned your ZFS dataset configuration should be set prior to putting any data on them. If data already exists, you'll need to create a new dataset and migrate the data to that dataset in order to fully enjoy their benefits.
 <p style='margin-bottom:1em; margin-right:0.2em; text-align:right; font-family:Georgia'>
 </p></span>
@@ -91,21 +90,21 @@ All of the settings mentioned your ZFS dataset configuration should be set prior
 
 * Edit `postgresql.conf` to better take advantage of that TB of memory you bought - some of this is (strictly speaking) unnecessary for most of us, as if you have compression enabled, the databases tend to be pretty small (more on that below):
 
-```shell
-shared_buffers = 2048MB
-huge_pages = try
-work_mem = 64MB
-maintenance_work_mem = 64MB
-max_stack_depth = 16MB
-max_files_per_process = 8000
-effective_io_concurrency = 200
-maintenance_io_concurrency = 200
-max_worker_processes = 24
-max_parallel_maintenance_workers = 8
-max_parallel_workers = 24
-max_wal_size = 1GB
-min_wal_size = 80MB
-```
+  ```sql
+  shared_buffers = 2048MB
+  huge_pages = try
+  work_mem = 64MB
+  maintenance_work_mem = 64MB
+  max_stack_depth = 16MB
+  max_files_per_process = 8000
+  effective_io_concurrency = 200
+  maintenance_io_concurrency = 200
+  max_worker_processes = 24
+  max_parallel_maintenance_workers = 8
+  max_parallel_workers = 24
+  max_wal_size = 1GB
+  min_wal_size = 80MB
+  ```
 
 Shared buffers is effectively the 'total memory allocation' for PG (among all it's processes). Work mem is the max memory that may be used by an individual worker, so it's important to keep that shared buffers value in mind when setting this. In the above, I've allocated `2GB` to PG; we have `24` workers and `8` maint workers, giving us `32 * 64MB = 2048MB`.  With autovacuum disabled, maint workers effectively just carry out indexing tasks, so we don't need a great many of them (more on autovacuum below). Keep an eye on your DB sizes (as reported by postgres, NOT the filesystem) - if you're allocating memory beyond what your DB's total sizes are, you're simply wasting resources!
 
@@ -115,15 +114,14 @@ For reference, the above settings have proven highly performant for myself, and 
 
 * Now restart postgres:
 
-  ``` bash
+  ```bash
   psql restart
-    ```
+  ```
 
-<div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc'>
+
+<div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc;'>
 <span>
-<p style='margin-top:0.2em; text-align:left'>
 <b>NOTE</b></p>
-<p style='margin-left:0.2em;'>
 Unlike the ZFS settings, all of the settings mentioned for postgresql.conf can be changed even after the DB has been created and still reap the benefits. If you're not getting the performance you desire, you can test and tweak at will; simply stop whatever applications are using PG, make the change to the config file, then restart the PG container (and start the application container back up as well following). There is unfortunately no 'one size fits all', but the above can be a healthy starting point. <b>Tune, test, evaluate - rinse and repeat!</b>
 <p style='margin-bottom:1em; margin-right:0.2em; text-align:right; font-family:Georgia'>
 </p></span>
