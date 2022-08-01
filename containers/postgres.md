@@ -1,20 +1,21 @@
-# ***Postgres on ZFS***
+# *** Postgres on ZFS ***
 
 ## **Table of Contents**
 
-- [**Primer**](#primer)
+- [Primer](#primer)
   * [My usecase](#my-usecase)
-- [**General Recommendations**](#general-recommendations)
-- [**Configuring Dataset and OS**](#configuring-dataset-and-os)
-- [**Configuring Postgres**](#configuring-postgres)
+- [General Recommendations](#general-recommendations)
+- [Configuring Dataset and OS](#configuring-dataset-and-os)
+- [Configuring Postgres](#configuring-postgres)
   * [A word on Autovacuum](#a-word-on-autovacuum)
-- [**Backups**](#backups)
+- [Backups](#backups)
   * [Via pgAdmin](#via-pgadmin)
   * [Via CLI - psql](#via-cli---psql)
   * [Taking advantage of some ZFS](#taking-advantage-of-some-zfs)
     + [Sanoid Automated Snapshots](#sanoid-automated-snapshots)
     + [Pre and Post scripts](#pre-and-post-scripts)
-- [**References**](#references)
+- [For when youre ready to go pro](#for-when-youre-ready-to-go-pro)
+- [References](#references)
 
 ## Primer
 
@@ -71,12 +72,13 @@ As with SQLite, we use the same compression and logbias settings, but this time 
 
   The above is a global parameter (see [github docs](https://openzfs.github.io/openzfs-docs/Performance%20and%20Tuning/Module%20Parameters.html#zfs-txg-timeout))- even if the pool you plan to put your DB on is redundant, should you have any other non-redundant pools, recommend avoiding this setting. While it'll likely help performance, in combination with the other settings we're using (both above and below), there's an increased risk (however small) of data loss in certain circumestances.
 
-<div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc;'>
+<div class="warning" style='padding:0.2em; background-color:#3396ff; color:#0033cc'>
 <span>
 <p style='margin-top:0.2em; text-align:left'>
-<b>NOTE</b>
+<b>NOTE</b></p>
+<p style='margin-left:0.5em;'>
 All of the settings mentioned your ZFS dataset configuration should be set prior to putting any data on them. If data already exists, you'll need to create a new dataset and migrate the data to that dataset in order to fully enjoy their benefits.
-<p style='margin-bottom:1em; margin-right:0.2em; text-align:right; font-family:Georgia'>
+<p style='margin-bottom:0.5em; margin-right:0.5em; text-align:right; font-family:Georgia'>
 </p></span>
 </div>
 
@@ -102,8 +104,10 @@ All of the settings mentioned your ZFS dataset configuration should be set prior
   max_worker_processes = 24
   max_parallel_maintenance_workers = 8
   max_parallel_workers = 24
+  random_page_cost = 1.1
   max_wal_size = 1GB
   min_wal_size = 80MB
+  checkpoint_completion_target = 0.9
   ```
 
 Shared buffers is effectively the 'total memory allocation' for PG (among all it's processes). Work mem is the max memory that may be used by an individual worker, so it's important to keep that shared buffers value in mind when setting this. In the above, I've allocated `2GB` to PG; we have `24` workers and `8` maint workers, giving us `32 * 64MB = 2048MB`.  With autovacuum disabled, maint workers effectively just carry out indexing tasks, so we don't need a great many of them (more on autovacuum below). Keep an eye on your DB sizes (as reported by postgres, NOT the filesystem) - if you're allocating memory beyond what your DB's total sizes are, you're simply wasting resources!
@@ -118,12 +122,13 @@ For reference, the above settings have proven highly performant for myself, and 
   psql restart
   ```
 
-
-<div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc;'>
+<div class="warning" style='padding:0.2em; background-color:#3396ff; color:#0033cc'>
 <span>
+<p style='margin-top:0.6em; text-align:left'>
 <b>NOTE</b></p>
+<p style='margin-left:0.6em;'>
 Unlike the ZFS settings, all of the settings mentioned for postgresql.conf can be changed even after the DB has been created and still reap the benefits. If you're not getting the performance you desire, you can test and tweak at will; simply stop whatever applications are using PG, make the change to the config file, then restart the PG container (and start the application container back up as well following). There is unfortunately no 'one size fits all', but the above can be a healthy starting point. <b>Tune, test, evaluate - rinse and repeat!</b>
-<p style='margin-bottom:1em; margin-right:0.2em; text-align:right; font-family:Georgia'>
+<p style='margin-bottom:0.2em; margin-right:0.2em; text-align:right; font-family:Georgia'>
 </p></span>
 </div>
 
@@ -137,8 +142,6 @@ Many will recommend also uncommenting the `autovacuum = on` line within  `postgr
 I do all my maintenance at once on databases, usually as part of a scheduled outage where I'm already undertaking other operations (e.g. nextcloud upgrade, disk replacement, or quarterly {if I remember...} server reboot). It's just 'cleaner', at least for me.
 
 ## Backups
-
-***WORK IN PROGRESS / TBD - has to be done on a per connection basis and isn't persistent, which means this requires container modification*** 
 
 There are two 'standard' options when it comes to backups; using pgAdmin, and via commandline using 'psql'. In addition, there are countless other methods/tools as well, and we'll touch on < however many I do >:
 
@@ -182,6 +185,8 @@ The dumps are placed wherever your appdata is located at for postgres, and avail
 
 ### Taking advantage of some ZFS
 
+***WORK IN PROGRESS / TBD - I really need to finish documenting this!*** 
+
 We're going to use ZFS snapshots for our backups. Since we're using WAL in combination with zfs, this *could* be considered optional by some - the ZIL keeps the ZFS filesystem layer consistent, and the WAL keeps the DB application layer consistent. Paranoia, however, is healthy when it comes to data loss prevention.
 
 The only difference between the above and below is that they're not necessarily 'both consistent at the same time'. Because of this, when the DB starts up, it may start in recovery mode - it replays the logs from WAL as needed.
@@ -192,19 +197,33 @@ The only difference between the above and below is that they're not necessarily 
  
  In sanoid.conf, use the below to let pg know you intend to start and stop a backup - recoveries are faster this way (not implemented in my setup, felt too much like 'work'):
  
- * **Pre-script** - 
- 
+* **Pre-script** - 
+
   ``` sql
   pg_start_backup('backup_name')
   ``` 
-  
+
 * **Post-script** - 
 
   ``` sql
   pg_stop_backup
   ``` 
 
+## For when youre ready to go pro
+
+You almost certainly don't need these, but at least from my work experience, these are the best in the business - allowing for point-in-time recovery (e.g. your backup was taken at noon, you can recover to any individual second prior, such as 11:54 and 32 seconds), highly configurable backups from multiple local/cloud locations, and so on:
+
+* [PMM](https://www.percona.com/software/database-tools/percona-monitoring-and-management) -  If there were a product that was "Grafana + GoAccess, but for databases", they'd call it Percona Monitoring and Management. This is the kind of tool folks like the Nextcloud dev team would use to optimize the queries used by the application.
+* [PGHero 2.0](https://github.com/ankane/pghero) - Think "PMM, but if I don't run a fortune 500 company". I run it [at home](https://github.com/ankane/pghero/blob/master/guides/Docker.md).
+* [pg_probackup](https://github.com/wal-g/wal-g) - Dedicated highly configurable and excellent cataloging of backups, making efficient work of understanding what your backup history and recoverability points are. Believe it or not, sometimes just *finding* the right backup to recover from (or even knowing what your options are) is the hardest part, especially when managing thousands of databases across 10s/100s of instances, and this makes it wickid simple.
+* [WAL-G](https://github.com/wal-g/wal-g) - Biggest win for wal-g is that it's the one tool I'm aware of that does (those things mentioned above), **AND** can handle Postgres, Maria/MySQL, Microsoft's SQLServer, and more recently even Mongo and Redis (crazy eh!?). Really, if you're in the devops world and haven't tried WAL-G, you owe it to yourself to give it a shot.
+* [Metabase](https://github.com/metabase/metabase) - asdfa
+* [Chartbrew](https://github.com/chartbrew/chartbrew) - Like metabase, just 'a bit less'. Fewer crazy features, fewer options, resulting in fewer resources used by the application. Great for the small/medium business market!
+
 ## References
 [PSQL tuner](https://github.com/jfcoz/postgresqltuner) - Dockerfile designed around finding issues and some areas for optimization
 
-[PGTune](https://pgtune.leopard.in.ua/#/) - Input your containers resource allocations (memory, CPU, storage type) and use case, helps provide a starting point for tuning `postgresql.conf`
+[pgTune](https://pgtune.leopard.in.ua/#/) - Input your containers resource allocations (memory, CPU, storage type) and use case, helps provide a starting point for tuning `postgresql.conf`
+
+[pgConfig](https://www.pgconfig.org/) - More tunable output than pgTune, but based on the same underlying code/work. The real value here lies not in the 'recommended tuning' output it provides (which is just average, as all 'general' recommendations must be without having a deeper understanding of the workload), but instead the explanations given for what the config variables specific impacts are when you select their dropdown
+
