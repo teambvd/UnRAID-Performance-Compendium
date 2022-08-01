@@ -1,6 +1,6 @@
 # ***Sonarr / Lidarr / Radarr on ZFS***
 
-Reference information:
+Reference information (my 'workloads'):
 
 > * Sonarr - `259MB` - 31,689 Episodes 
 > * Radarr - `115MB` - 2460 Movies
@@ -8,6 +8,7 @@ Reference information:
 
 
 ## Filesystem settings recommendations:
+
 * Recordsize - `64K` - This'll make more sense when we get to tuning the DB
 * Compression - `zstd-3` - I'd used `lz4` since opensolaris was released, but z-std has made me a believer - 2.57 compressratio, no noticeable performance differnce (on a modern CPU at least). Standard recommendation for all non-media datasets imo.
 * Primarycache - `none` - the DB does it's own caching, so this would be duplicating resources, wasting them; normally you'd set this to `metadata` for a database, but sqlite's so small, there's limited gains (if any) from doing so, especially on NVME; again, more on this later
