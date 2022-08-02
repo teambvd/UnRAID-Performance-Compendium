@@ -1,4 +1,5 @@
-# UnRAID + ZFS
+# UnRAID + ZFS + This = Performance Bliss! (...Hopefully)
+
 **A collection of documentation I've written up surrounding UnRAID's use while running the ZFS filesystem**
 
 My 9-5 is essentially "this is slow, make fast" for a data management/security company, and since basically every application out there has **some** persistent data to be managed, some OS/hardware to run it, and some way to connect to it, I end up knowing just a liiiiittle bit (enough to cause problems at least!) about a whole lot. When I started homelabbing, I tended to apply the same methodologies gained from that time at work.
@@ -28,6 +29,7 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
       * Compreface
       * Deepstack
     * MQTT
+  *
 * Assorted stuff (that doesn't fit anywhere else)
   * [SMB on UnRAID](https://forums.unraid.net/topic/97165-smb-performance-tuning/)
   * [Compiled commands reference]
