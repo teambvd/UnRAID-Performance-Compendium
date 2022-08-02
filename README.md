@@ -8,7 +8,7 @@ I've been using ZFS almost since it's arrival on the open source scene, starting
   * [Sonarr/Radarr/Lidarr](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
   * [Ombi](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/ombi.md)
   * [Postgres](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/postgres.md)
-  * Nextcloud
+  * [Nextcloud](https://github.com/teambvd/unraid_docs-ZFS_and_Containers/blob/main/containers/nextcloud.md)
 * General
   * Virtual Machines
   * Helpful commands (reference)
