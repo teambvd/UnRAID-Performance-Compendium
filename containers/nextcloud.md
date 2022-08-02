@@ -2,12 +2,25 @@
 
 This doc goes through the various performance-related tips and tweaks I've compiled for my own implementation over the course of the last several years. It's not intended as a one-stop-shop for 'how to install nextcloud', but instead more of a 'what to do once you've gotten your nextcloud up and running' to make it run more efficiently. 
 
-### Assumes use of the following containers: 
+## Table of Contents
+
+  + [Assumes use of the following containers](#assumes-use-of-the-following-containers)
+    - [Additional Notes](#additional-notes)
+  + [Databases](#databases)
+  + [Tuning the Nextcloud container](#tuning-the-nextcloud-container)
+    - [Global PHP parameters](#global-php-parameters)
+    - [Preview generation related](#preview-generation-related)
+  + [Generally helpful configuration options](#generally-helpful-configuration-options)
+    - [SSL on LAN for secured local access](#ssl-on-lan-for-secured-local-access)
+    - [The Deck app is dumb](#the-deck-app-is-dumb)
+    - [Create previews for numerous additional filetypes](#create-previews-for-numerous-additional-filetypes)
+
+### Assumes use of the following containers
 * LSIO nextcloud with php8 (finally matured enough to be reliable IMO)
 * xternet onlyoffice image
-* redis <official, alpine>, 
-* postgres 13 <official, alpine> 
-* and NginxProxyManager <official> as double proxy
+* redis (`official alpine`)
+* postgres 13 (`official alpine`) 
+* and NginxProxyManager (`official`) as double proxy
 (if already using rabbitmq, for something like homeassistant or w/e, you can use that same instance for onlyoffice here too. Extra credit or some crap, brown noser.)
 
 #### Additional Notes
@@ -17,14 +30,14 @@ This doc goes through the various performance-related tips and tweaks I've compi
 
 ### Databases
 
-* Postgres user and db creation -
+* Postgres user and db creation:
   ```sql
   CREATE USER nc WITH PASSWORD 'MakeThisOneGoodAndSTRONK';
   CREATE DATABASE nc TEMPLATE template0 ENCODING 'UNICODE';
   ALTER DATABASE nc OWNER TO nc;
   GRANT ALL PRIVILEGES ON DATABASE nc TO nc;
   ```
-	 * Create one for `onlyoffice` as well, so the docs container doesn't have to spin up some postgres 12 container or some such nonsense, same for `redis` (but no additional redis config necessary). This helps to reduce excess CPU consumption. See [here](https://github.com/ONLYOFFICE/Docker-DocumentServer#available-configuration-parameters) for variables to add to the onlyoffice container to allow use of existing postgres/redis containers.
+  * Create one for `onlyoffice` as well, so the docs container doesn't have to spin up some postgres 12 container or some such nonsense, same for `redis` (but no additional redis config necessary). This helps to reduce excess CPU consumption. See [here](https://github.com/ONLYOFFICE/Docker-DocumentServer#available-configuration-parameters) for variables to add to the onlyoffice container to allow use of existing postgres/redis containers.
 
 * Performance recommendations related to DB's - Add the below to 'go' file - see [here](https://docs.actian.com/vector/4.2/index.html#page/User%2FOS_Settings.htm%23) for details/calculations - 
   ```bash
@@ -47,7 +60,14 @@ This doc goes through the various performance-related tips and tweaks I've compi
     'port' => 6379,
   ), 
   ```
+
 ### Tuning the Nextcloud container
+
+Nearly all our nextcloud 'application-specific' tuning options are PHP related, though some are to the 'global' PHP instance, while others are for directed to applications coded in PHP which use that PHP instance.
+
+#### Global PHP parameters
+
+You can find explanations of these tunable options (PHP calls them 'directives') and what their impacts are can be found in the [official PHP documentation](https://www.php.net/manual/en/ini.core.php)
 
 * Set your nextcloud's limits - input and execution time must be increased as well (as this is the max time it'll allow an action to take, and 60G can't be downloaded in 60 seconds, set to 2 hours here) "nano /mnt/wd/dock/nextcloud/php/php-local.ini"
   ```php
@@ -57,7 +77,6 @@ This doc goes through the various performance-related tips and tweaks I've compi
   max_input_time = 7200
   max_execution_time = 7200
   ```
-
 * Increase the number of PHP processes allowed, adding the below to to the bottom of - /mnt/wd/dock/nextcloud/php/www2.conf
   ```php
   pm = dynamic
@@ -75,7 +94,11 @@ This doc goes through the various performance-related tips and tweaks I've compi
   apk add -X http://dl-cdn.alpinelinux.org/alpine/edge/testing dlib
   ```
 
-* **Set preview generation limits** - highly customizable; the more options you add here, the more preview types you'll generate, though this is at the cost of more storage for preview. One should note, whether and to what degree this helps page load performance will be highly dependent upon the storage which contains these preview files, and as such, recommend they're kept on low latency / high performance data storage. Below pre-gen's thumbnails, but not the 'clicked' images (when you open the image, this preview is generated on demand), and limits the on demand generated size to 2048x2048:
+#### Preview generation related
+
+Highly customizable; the more options you add here, the more preview types you'll generate, though this is at the cost of more storage for preview. One should note, whether and to what degree this helps page load performance will be highly dependent upon the storage which contains these preview files, and as such, recommend they're kept on low latency / high performance data storage. 
+
+* Below pre-gen's thumbnails, but not the 'clicked' images (when you open the image, this preview is generated on demand), and limits the on demand generated size to 2048x2048
     * From the cli, configure the pre-generator
       ```bash
       s6-setuidgid abc php8 -f /config/www/nextcloud/occ config:app:set --value="32 64 1024"  previewgenerator squareSizes
@@ -94,7 +117,12 @@ This doc goes through the various performance-related tips and tweaks I've compi
 		  s6-setuidgid abc php8 -f /config/www/nextcloud/occ config:app:set preview preview_max_x --value="2048"
 		  s6-setuidgid abc php8 -f /config/www/nextcloud/occ config:app:set preview jpeg_quality --value="60"
 		  ```
-
+	* Set up automated preview generation and facial recognition hourly for face, 3 times/hour for previews - "nano /mnt/wd/dock/nextcloud/crontabs/root"
+      ```bash
+      */20	*	*	*	*	s6-setuidgid abc php8 -f /config/www/nextcloud/occ preview:pre-generate -vvv
+      */20	*	*	*	*	s6-setuidgid abc php8 -f /config/www/nextcloud/occ documentserver:flush
+      0	*	*	*	*	s6-setuidgid abc php8 -f /config/www/nextcloud/occ face:background_job -t 35
+      ```
 
 <div class="warning" style='padding:1em; background-color:#3396ff; color:#0033cc'>
 <span>
@@ -108,91 +136,82 @@ Using 's6-setuidgid' is typically preferred as this pretty well 'always works', 
 
 *Refer to the [s6 Overlay Github](https://github.com/just-containers/s6-overlay) for further information on how s6 works*
 
+### Generally helpful configuration options
 
-* Set up automated preview generation and facial recognition hourly for face, 3 times/hour for previews - "nano /mnt/wd/dock/nextcloud/crontabs/root"
-	
-```bash
-*/20	*	*	*	*	s6-setuidgid abc php8 -f /config/www/nextcloud/occ preview:pre-generate -vvv
-*/20	*	*	*	*	s6-setuidgid abc php8 -f /config/www/nextcloud/occ documentserver:flush
-0	*	*	*	*	s6-setuidgid abc php8 -f /config/www/nextcloud/occ face:background_job -t 35
-```
+There are some 'quality of life' customizations I've found over my time running owncloud, then eventually nextcloud after the split, which have been significantly useful:
 
+#### SSL on LAN for secured local access
 
+* Set up user script to ensure that SSL certs are copied from NginxProxyManager to nextcloud, I've mine kicking off daily at 0305 early each morning (`custom sched, '5 3 * * *'`)
+  ```bash
+  ## copying key and cert for nextcloud
+  cp /mnt/wd/compose/nginx/letsencrypt/live/npm-30/privkey.pem /mnt/wd/compose/nextcloud/keys/privkey.pem
+  cp /mnt/wd/compose/nginx/letsencrypt/live/npm-30/cert.pem /mnt/wd/compose/nextcloud/keys/cert.pem
+  ```
 
-* Set up user script to ensure that SSL certs are copied from NginxProxyManager to nextcloud, I've mine kicking off daily at 0305 early each morning (custom sched, '5 3 * * *'):
+#### The Deck app is dumb
 
-```bash
-## copying key and cert for nextcloud
-cp /mnt/wd/compose/nginx/letsencrypt/live/npm-30/privkey.pem /mnt/wd/compose/nextcloud/keys/privkey.pem
-cp /mnt/wd/compose/nginx/letsencrypt/live/npm-30/cert.pem /mnt/wd/compose/nextcloud/keys/cert.pem
-```
+* Make your login actually go to your files instead of the dashboard - for home users utilizing nextcloud mainly for it's initial design purpose (cloud storage / file sync and share), the dashboard 'Deck' app is... Sorta worthless. You can instead make nextcloud default to showing your files (or whatever you prefer) immediately after logging in to save you that extra click each time! Add the following to config.php - this can be set to any app (e.g. 'photos', 'circles', 'calendar', etc):
 
+  ```php
+  'defaultapp' => 'files',
+  ```
 
+#### Create previews for numerous additional filetypes
 
-* Make your login actually go to your files instead of the dashboard - for home users utilizing nextcloud mainly for it's initial design purpose (cloud storage / file sync and share), the dashboard is often less useful. Add the following to config.php - this can be set to any app (e.g. 'photos', 'circles', etc):
-
-```php
-'defaultapp' => 'files',
-```
-
-
+This can be resource intensive at first when setting up, but once it's churned through all your existing files, the additional load should be minimal (if even noticeable):
 
 * Allow previews to be generated for files other than pictures -
-
- - List of potential preview candidates are as follows:
- 
-OC\Preview\BMP
-OC\Preview\GIF
-OC\Preview\JPEG
-OC\Preview\MarkDown
-OC\Preview\MP3
-OC\Preview\PNG
-OC\Preview\TXT
-OC\Preview\XBitmap
-OC\Preview\OpenDocument
-OC\Preview\Krita
-OC\Preview\Illustrator
-OC\Preview\HEIC
-OC\Preview\Movie
-OC\Preview\MSOffice2003
-OC\Preview\MSOffice2007
-OC\Preview\MSOfficeDoc
-OC\Preview\PDF
-OC\Preview\Photoshop
-OC\Preview\Postscript
-OC\Preview\StarOffice
-OC\Preview\SVG
-OC\Preview\TIFF
-OC\Preview\Font
-
- - Defaults only to a select few (images mostly, but notably excluding HEIC, which is super annoying if you've any iOS users)... But you can modify the included providers. Note, if you specify ANY providers, then none of the defaults are selected, meaning f you're going to add one, then you need to specify EACH of the ones you want previews for (e.g. setting just the HEIC provider means that nothing other than HEIC will get previews, so ensure you've listed each one you need).
-
-
- - However, if you specify any providers, only those explicitly specified will be used (so you can't add just one then expect the defaults to be called as well); example (add to config.php):
-
-'enable_previews' => true,
-'enabledPreviewProviders' =>
- array (
-   1 => 'OC\\Preview\\HEIC',
-   2 => 'OC\\Preview\\PDF',
-   3 => 'OC\\Preview\\XBitmap',
-   4 => 'OC\\Preview\\PNG',
-   5 => 'OC\\Preview\\Image',
-   6 => 'OC\\Preview\\Photoshop',
-   7 => 'OC\\Preview\\TIFF',
-   8 => 'OC\\Preview\\SVG',
-   9 => 'OC\\Preview\\BMP',
-   10 => 'OC\\Preview\\GIF',
-   11 => 'OC\\Preview\\JPEG',
-),
-
-
-
-
-* Lastly, finally enable your configured stuff from above (docker terminal for nextcloud):
-	
-s6-setuidgid abc php8 -f /config/www/nextcloud/occ preview:generate-all -vvv
-
+	* List of potential preview candidates are as follows: 
+      ```php
+      OC\Preview\BMP
+      OC\Preview\GIF
+      OC\Preview\JPEG
+      OC\Preview\MarkDown
+      OC\Preview\MP3
+      OC\Preview\PNG
+      OC\Preview\TXT
+      OC\Preview\XBitmap
+      OC\Preview\OpenDocument
+      OC\Preview\Krita
+      OC\Preview\Illustrator
+      OC\Preview\HEIC
+      OC\Preview\Movie
+      OC\Preview\MSOffice2003
+      OC\Preview\MSOffice2007
+      OC\Preview\MSOfficeDoc
+      OC\Preview\PDF
+      OC\Preview\Photoshop
+      OC\Preview\Postscript
+      OC\Preview\StarOffice
+      OC\Preview\SVG
+      OC\Preview\TIFF
+      OC\Preview\Font
+      ```
+    * Defaults only to a select few (images mostly, but notably excluding HEIC, which is super annoying if you've any iOS users)... But you can modify the included providers. Note, if you specify ANY providers, then none of the defaults are selected, meaning f you're going to add one, then you need to specify EACH of the ones you want previews for (e.g. setting just the HEIC provider means that nothing other than HEIC will get previews, so ensure you've listed each one you need).
+      
+      However, if you specify any providers, only those explicitly specified will be used (so you can't add just one then expect the defaults to be called as well); example (add to config.php):
+      ```php
+      'enable_previews' => true,
+      'enabledPreviewProviders' =>
+       array (
+         1 => 'OC\\Preview\\HEIC',
+         2 => 'OC\\Preview\\PDF',
+         3 => 'OC\\Preview\\XBitmap',
+         4 => 'OC\\Preview\\PNG',
+         5 => 'OC\\Preview\\Image',
+         6 => 'OC\\Preview\\Photoshop',
+         7 => 'OC\\Preview\\TIFF',
+         8 => 'OC\\Preview\\SVG',
+         9 => 'OC\\Preview\\BMP',
+         10 => 'OC\\Preview\\GIF',
+         11 => 'OC\\Preview\\JPEG',
+      ),
+      ```
+    * Lastly, finally enable your configured stuff from above (docker terminal for nextcloud):
+      ```php
+      s6-setuidgid abc php8 -f /config/www/nextcloud/occ preview:generate-all -vvv
+      ```
 
 
 
@@ -262,8 +281,8 @@ location ^~ /push/ {
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
 
-# proxy_max_temp_file_size 16384m;
-# client_max_body_size 0;
+ proxy_max_temp_file_size 16384m;
+ client_max_body_size 0;
 
 
 
