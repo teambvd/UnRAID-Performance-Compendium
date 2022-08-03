@@ -48,7 +48,7 @@ This doc goes through the various performance-related tips and tweaks I've compi
   sysctl -w vm.max_map_count=393216
   ```
 
-* Redis - needed for high performace backend as well as onlyoffice, and hugely helpful for systems with either high user counts, or where users may be syncing a massive number of files; this assumes you've created a custom docker network which both nextcloud and redis share, and that the redis container is simply named 'redis' - edit config.php to look like:
+* [Redis](https://github.com/redis/redis) - needed for high performace backend as well as onlyoffice, and hugely helpful for systems with either high user counts, or where users may be syncing a massive number of files; this assumes you've created a custom docker network which both nextcloud and redis share, and that the redis container is simply named 'redis' - edit config.php to look like:
   ```php
   $CONFIG = array (
   'memcache.local' => '\\OC\\Memcache\\APCu',
