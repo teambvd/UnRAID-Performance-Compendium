@@ -37,6 +37,6 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
   * [Sonarr/Radarr/Lidarr - Anything with SQLite](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
 * Assorted stuff (that doesn't fit anywhere else)
   * [SMB on UnRAID](https://forums.unraid.net/topic/97165-smb-performance-tuning/)
-  * [Compiled commands reference]
+  * [Compiled commands reference](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/helpfulCommands.md)
   * 
   
