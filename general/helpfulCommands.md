@@ -8,9 +8,9 @@
   * [Start or stop the array from the CLI](#start-or-stop-the-array-from-the-cli)
 - [General Linux stuff](#general-linux-stuff)
   * [List top 10 biggest files in all sub-dirs of current directory](#list-top-10-biggest-files-in-all-sub-dirs-of-current-directory)
-  * [Download files from archive.org based on listed output (e.g. get all iso, zip, and 7z files in this case)](#download-files-from-archiveorg-based-on-listed-output--eg-get-all-iso--zip--and-7z-files-in-this-case-)
+  * [Bulk Downloading from Archive.org](#bulk-downloading-from-archivedotorg)
   * [Remove the first 7 characters from all files in a dir](#remove-the-first-7-characters-from-all-files-in-a-dir)
-  * [Get a breakdown of file sizes for a given directory (and it's sub-directories)](#get-a-breakdown-of-file-sizes-for-a-given-directory--and-it-s-sub-directories-)
+  * [Get a breakdown of file sizes for a given directory including subdirs](#get-a-breakdown-of-file-sizes-for-a-given-directory-including-subdirs)
 - [Personal tools stuff](#personal-tools-stuff)
   * [Chrome to table generation](#make-a-table-showing-links-displayed-on-page-)
   * [Fix time machine stuck in stopping](#kill-bvdmbp-time-machine-locks-so-it-can-pick-back-up)
@@ -68,6 +68,13 @@ wget -qO /dev/null http://localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d
 wget -qO /dev/null http://localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')/update.htm?cmdStop=Stop
 ```
 
+### Spin up a drive manually
+* Manually spinning down a drive
+  ```bash
+  #where 'X' equals your drive letter
+  sdspin sdX up
+  ```
+
 ## General Linux stuff
 
 (that works just the same on UnRAID)
@@ -78,8 +85,9 @@ wget -qO /dev/null http://localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d
 find $PWD -type f -printf '%s %p\n' | sort -nr | head -10
 ```
 
-### Download files from archive.org based on listed output (e.g. get all iso, zip, and 7z files in this case)
+### Bulk Downloading from archiveDOTorg
 
+* Download files from archiveDOTorg based on listed output (e.g. get all iso, zip, and 7z files in this case)
 ```bash
 wget -A iso,zip,7z -m -p -E -k -K -np https://archive.org/download/GCUSRVZ-Arquivista
 ```
@@ -88,9 +96,9 @@ wget -A iso,zip,7z -m -p -E -k -K -np https://archive.org/download/GCUSRVZ-Arqui
 
 `for f in *; do mv "$f" "${f:7}"; done`
 
-### Get a breakdown of file sizes for a given directory (and it's sub-directories)
+### Get a breakdown of file sizes for a given directory including subdirs
 
-* note - this can take a **very** long time to complete if you've got a ton of tiny little files*
+  note - this can take a **very** long time to complete if you've got a ton of tiny little files
   ```bash
   find /mnt/whatever/directory -type f -print0 | xargs -0 ls -l | awk '{ n=int(log($5)/log(2)); if (n<10) { n=10; } size[n]++ } END { for (i in size) printf("%d %d\n", 2^i, size[i]) }' | sort -n | awk 'function human(x) { x[1]/=1024; if (x[1]>=1024) { x[2]++; human(x) } } { a[1]=$1; a[2]=0; human(a); printf("%3d%s: %6d\n", a[1],substr("kMGTEPYZ",a[2]+1,1),$2) }'
   ```
