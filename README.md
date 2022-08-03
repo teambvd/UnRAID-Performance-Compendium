@@ -16,20 +16,24 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
   * [Setting up various tools and scripts for monitoring and improved server mgmt quality of life]
   * [Installed tools and apps outside the ecosystem, and integrating them into UnRAID (cleanly)]
 * Container Specific
-  * [Sonarr/Radarr/Lidarr - Anything with SQLite](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
   * [Ombi](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/ombi.md)
   * [Postgres](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/postgres.md)
+  * [OpenLDAP]
+    * LAM - LDAP Account Manager
+    * Authentik
+    * PWM
   * [Nextcloud - (in progress)](https://github.com/teambvd/unraid_docs-ZFS_and_Containers/blob/main/containers/nextcloud.md)
   * [MariaDB]
   * [ElasticSearch]
   * [InfluxDB/Telegraf/Prometheus/Grafana]
+    * ELK stack using Elastic from above
   * Home Assistant
     * Frigate
       * Doube take
       * Compreface
       * Deepstack
     * MQTT
-  *
+  * [Sonarr/Radarr/Lidarr - Anything with SQLite](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
 * Assorted stuff (that doesn't fit anywhere else)
   * [SMB on UnRAID](https://forums.unraid.net/topic/97165-smb-performance-tuning/)
   * [Compiled commands reference]
