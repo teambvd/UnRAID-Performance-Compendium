@@ -28,7 +28,7 @@ I've tried to give what I feel are some sane config values, along with just enou
 What I use postgres for, the DB sizes, and any workload information I can think of that might allow someone to equate my settings and usage to their own. DB Size equals DB + Temp files (as reported by pgadmin):
 
 
-> * Nextcloud -  `6` users - `1.1m` files - `1647MB` DB size 
+> * Nextcloud -  `6` users - `1.1m` files - `1991MB` DB size 
 > * Paperless - `2` users - `1438` files - `14MB` DB size
 > * OnlyOffice - Nextcloud connected only - `8MB` DB size
 > * NextcloudTest - `2` users - `2.35m` files - `3.05GB` DB size - a random local test instance for perf tuning tests prior to putting into 'production'
