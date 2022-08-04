@@ -55,7 +55,7 @@ mariadb:
 
 #### MariaDB Tuning that's specific to use on ZFS
 
- **_Explain each: why we're disabling various maria data 'safety' features, etc**
+ **_Explain each: why we're disabling various maria data 'safety' features, etc_**
 
 ```bash
 innodb_doublewrite=0
