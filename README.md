@@ -14,6 +14,7 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
   * [NFS - to be documented]
   * [Virtual Machines]
   * [Common issues and questions related to ZFS on UnRAID]
+    * [Hosting the Docker Image on ZFS](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/DockerImageOnZFS.md)
   * [Setting up various tools and scripts for monitoring and improved server mgmt quality of life]
   * [Installed tools and apps outside the ecosystem, and integrating them into UnRAID (cleanly)]
 * Container Specific
