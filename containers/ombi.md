@@ -50,9 +50,10 @@ It's no wonder the database completely locks up once you've got multiple users a
 
 SQLite's more than capable of handling this as long as we give it the proper resources it needs to do so.
 
-We'll use the TRUNCATE logging mechanism instead of WAL as it's more performant than DELETE without having any additional files generated as we would with WAL, as well as bumping the page size to max to minimize our number of unnecessary writes:
+We'll use the WAL (Write-Ahead Log) logging mechanism instead of TRUNCATE as it's more performant than both `truncate` and `delete` and we don't really care about the additional files being generated additional files generated as we would with WAL, as well as bumping the page size to max to minimize our number of unnecessary writes:
 
 ```sql
+# Do this for each of the three ldb files
 sqlite3 Ombi.db 'pragma page_size=65536; pragma journal_mode=wal; VACUUM;'
 ```
 
