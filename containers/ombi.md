@@ -53,7 +53,7 @@ SQLite's more than capable of handling this as long as we give it the proper res
 We'll use the WAL (Write-Ahead Log) logging mechanism instead of TRUNCATE as it's more performant than both `truncate` and `delete` and we don't really care about the additional files being generated additional files generated as we would with WAL, as well as bumping the page size to max to minimize our number of unnecessary writes:
 
 ```sql
-# Do this for each of the three ldb files
+# Do this for each of the three .db files
 sqlite3 Ombi.db 'pragma page_size=65536; pragma journal_mode=wal; VACUUM;'
 ```
 
