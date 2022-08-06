@@ -25,12 +25,12 @@ zfs create wd/dock/mariadb -o recordsize=16K -o logbias=throughput -o primarycac
 ```
 
 [**Explanation**](https://shatteredsilicon.net/blog/2020/06/05/mysql-mariadb-innodb-on-zfs/)
-* Recordsize - InnoDB writes in 16KB chunks
-* Logbias - recommendation from oracle re: [databases on ZFS](https://docs.oracle.com/cd/E19253-01/819-5461/givdo/index.html)
-* Primarycache - the DB does it's own caching ('buffer pool'), so we should only cache filesystem metadata, not 'everything'
-* atime - updating metadata every time a file is accessed is, in nearly all cases, absurd. Should be disabled as a general rule in ZFS unless you've a very specific need for it
-* xattr - If you're on Linux, you should frankly have this configured at the pool level as it should be set for all (otherwise you'll likely encounter severe issues if you ever do anything like NFS or SMB access, at a minimum)
-* Compression - zstd-3 is 'cheap' enough (resource-wise) that I feel it should be the standard when running any modern-ish CPU (at least for server use... there are caveats for workstations etc)
+* `Recordsize` - InnoDB writes in 16KB chunks
+* `Logbias` - recommendation from oracle re: [databases on ZFS](https://docs.oracle.com/cd/E19253-01/819-5461/givdo/index.html)
+* `Primarycache` - the DB does it's own caching ('buffer pool'), so we should only cache filesystem metadata, not 'everything'
+* `atime` - updating metadata every time a file is accessed is, in nearly all cases, absurd. Should be disabled as a general rule in ZFS unless you've a very specific need for it
+* `xattr` - If you're on Linux, you should frankly have this configured at the pool level as it should be set for all (otherwise you'll likely encounter severe issues if you ever do anything like NFS or SMB access, at a minimum)
+* `Compression` - zstd-3 is 'cheap' enough (resource-wise) that I feel it should be the standard when running any modern-ish CPU (at least for server use... there are caveats for workstations etc)
 
 #### Creating your container ####
 
