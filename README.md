@@ -11,21 +11,22 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
 ### Index
 * General
   * [SR-IOV on UnRAID](https://forums.unraid.net/topic/103323-how-to-using-sr-iov-in-unraid-with-1gb10gb40gb-network-interface-cards-nics/)
+  * [Common issues/questions/general information related to ZFS on UnRAID](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/commonIssues.md)
   * [NFS - to be documented]
   * [Virtual Machines]
-  * [Common issues/questions/general information related to ZFS on UnRAID](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/commonIssues.md)
     * [Hosting the Docker Image on ZFS](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/DockerImageOnZFS.md)
   * [Setting up various tools and scripts for monitoring and improved server mgmt quality of life]
   * [Installed tools and apps outside the ecosystem, and integrating them into UnRAID (cleanly)]
 * Container Specific
   * [Ombi](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/ombi.md)
+  * [Sonarr/Radarr/Lidarr - Anything with SQLite](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
+  * [Nextcloud - (in progress)](https://github.com/teambvd/unraid_docs-ZFS_and_Containers/blob/main/containers/nextcloud.md)
   * [Postgres](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/postgres.md)
   * [MariaDB - (in progress)](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/containers/MariaDbAndMySql.md)
   * [OpenLDAP]
     * [LAM - LDAP Account Manager]
     * [Authentik]
     * [PWM]
-  * [Nextcloud - (in progress)](https://github.com/teambvd/unraid_docs-ZFS_and_Containers/blob/main/containers/nextcloud.md)
   * [ElasticSearch]
   * [InfluxDB/Telegraf/Prometheus/Grafana]
     * [ELK stack using Elastic from above]
@@ -35,7 +36,6 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
       * [Compreface]
       * [Deepstack]
     * [MQTT]
-  * [Sonarr/Radarr/Lidarr - Anything with SQLite](https://github.com/teambvd/unraid-zfs-docs/blob/main/containers/sonarrRadarrLidarr.md)
 * Assorted stuff (that doesn't fit anywhere else)
   * [SMB on UnRAID](https://forums.unraid.net/topic/97165-smb-performance-tuning/)
   * [Compiled commands reference](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/helpfulCommands.md)
