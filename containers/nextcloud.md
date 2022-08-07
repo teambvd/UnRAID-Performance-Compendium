@@ -67,7 +67,7 @@ Nearly all our nextcloud 'application-specific' tuning options are PHP related, 
 
 #### Global PHP parameters
 
-You can find explanations of these tunable options (PHP calls them 'directives') and what their impacts are can be found in the [official PHP documentation](https://www.php.net/manual/en/ini.core.php)
+You can find explanations of these tunable options (PHP calls them 'directives') and what their impacts are can be found in the [official PHP documentation](https://www.php.net/manual/en/ini.core.php):
 
 * Set your nextcloud's limits - input and execution time must be increased as well (as this is the max time it'll allow an action to take, and 60G can't be downloaded in 60 seconds, set to 2 hours here) "nano /mnt/wd/dock/nextcloud/php/php-local.ini"
   ```php
@@ -77,6 +77,8 @@ You can find explanations of these tunable options (PHP calls them 'directives')
   max_input_time = 7200
   max_execution_time = 7200
   ```
+  * For the execution and input times here, you should try to do some rough math to deduce 'with my max file size, and my available upload bandwidth, how long would it realistically take to complete the upload?' Taking the above as an example - for a `60GB` file to upload using a 30Mb/s pipe takes roughly 4 hours and 20 mins. Building in some buffer room for other small sync operations in between and rounding up, 5 hours is chosen (our `7200` above, converting to time in seconds)
+
 * Increase the number of PHP processes allowed, adding the below to to the bottom of - /mnt/wd/dock/nextcloud/php/www2.conf
   ```php
   pm = dynamic
@@ -85,6 +87,7 @@ You can find explanations of these tunable options (PHP calls them 'directives')
   pm.min_spare_servers = 6
   pm.max_spare_servers = 24
   ```
+  * Be aware that these settings are reliant upon your [DB's configuration](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/containers/postgres.md) for proper function; for instance, if you've set `pm.max_children` to `100`, but your database's max connections allowed is 50, you're going to see php reporting errors spinning up another server/child process if it tries to request a connection beyond the DB's allowed settings.
 
 * install pdlib at startup for facial recognition plugin - "nano /mnt/wd/dock/nextcloud/custom-cont-init.d/pdlib"
   ```bash
