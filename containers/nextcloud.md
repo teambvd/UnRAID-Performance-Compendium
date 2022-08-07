@@ -77,7 +77,7 @@ You can find explanations of these tunable options (PHP calls them 'directives')
   max_input_time = 7200
   max_execution_time = 7200
   ```
-  * For the execution and input times here, you should try to do some rough math to deduce 'with my max file size, and my available upload bandwidth, how long would it realistically take to complete the upload?' Taking the above as an example - for a `60GB` file to upload using a 30Mb/s pipe takes roughly 4 hours and 20 mins. Building in some buffer room for other small sync operations in between and rounding up, 5 hours is chosen (our `7200` above, converting to time in seconds)
+  * For the execution and input times here, you should try to do some rough math to deduce 'with my max file size, and my available upload bandwidth, how long would it realistically take to complete the upload?' Taking the above as an example - for a `60GB` file to upload using a 30Mb/s pipe takes roughly 4 hours and 20 mins. Building in some buffer room for other small sync operations in between and rounding up, 5 hours is chosen (our `7200` above, converting to time in seconds). You can use a [bandwidth calculator](https://www.calculator.net/bandwidth-calculator.html) to make things easier on you.
 
 * Increase the number of PHP processes allowed, adding the below to to the bottom of - /mnt/wd/dock/nextcloud/php/www2.conf
   ```php
