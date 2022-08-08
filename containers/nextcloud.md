@@ -10,6 +10,7 @@ This doc goes through the various performance-related tips and tweaks I've compi
   + [Tuning the Nextcloud container](#tuning-the-nextcloud-container)
     - [Global PHP parameters](#global-php-parameters)
     - [Preview generation related](#preview-generation-related)
+      + [Making sure pregeneration serves its purpose in UnRAID](#making-sure-pregeneration-serves-its-purpose-in-unraid)
   + [Generally helpful configuration options](#generally-helpful-configuration-options)
     - [SSL on LAN for secured local access](#ssl-on-lan-for-secured-local-access)
     - [The Deck app is dumb](#the-deck-app-is-dumb)
@@ -138,6 +139,26 @@ Using 's6-setuidgid' is typically preferred as this pretty well 'always works', 
 </div>
 
 *Refer to the [s6 Overlay Github](https://github.com/just-containers/s6-overlay) for further information on how s6 works*
+
+##### **Making sure pregeneration serves its purpose in UnRAID**
+
+Preview pre-generation's entire goal is to ensure that, when you click to load a page, there's no waiting around for that pages contents to load other than that which is caused by the upload bandwidth of your server. If, like me, you've a boatload of files in your nextcloud, you may well be using the UnRAID array to host your files (if so, recommend the Integrity plugin from community apps), likely with the share you've mapped to nextcloud's "/data" folder set to `cache=yes`.
+
+The problem here is that nextcloud's appdata (where it puts all data related to items installed from the nextcloud Hub) is stored in this same share - with `cache=yes`, all your previews will inevitably end up on the (slow) array once mover runs. We want **at least** the pre-generated images on the cache; we don't really care about the longevity of these files, so even if you've only a single disk cache pool, we can keep them there. Should the worst occur and your cache disk dies, we can always re-generate the previews.
+
+* First ensure the [CA mover tuning](https://forums.unraid.net/topic/70783-plugin-mover-tuning/) plugin is installed. This can then be configured at `https://UnraidIpAddress/Plugins/Scheduler`, then the `Mover Tuning` tab.
+* Now we need to create a file noting what to ignore - on your flash boot device is fine, I've chosen to put it on my zpool with the rest of my scripts and such:
+  ```bash
+  nano /mnt/user/scriptLocation/moverTuningExclusions.txt
+  
+  # now we're telling Mover Tuning what to leave alone - put just this line into the file and save/exit:
+  /mnt/user/nxstore/appdata_ocbgah4z0nhr/preview
+  ```
+* We'll now set up mover tuning to ignore moving anything within our preview dir using `Ignore files listed inside of a text file` and specifying the file we just created:
+  ![MoverTuning](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/containers/moverTuning.png)
+
+**IMPORTANT**
+You can set mover tuning to leave the entire appdata directory on the cache, but should **ONLY** do this if you've a redundant cache pool (mirrored, raid5/6) as not all data within the appdata dir is 'expendable' in the same way the pre-generated previews are. 
 
 ### Generally helpful configuration options
 
