@@ -15,7 +15,7 @@ This doc goes through the various performance-related tips and tweaks I've compi
     - [SSL on LAN for secured local access](#ssl-on-lan-for-secured-local-access)
     - [The Deck app is dumb](#the-deck-app-is-dumb)
     - [Create previews for numerous additional filetypes](#create-previews-for-numerous-additional-filetypes)
-    - [HTTP2 in NginxProxyManager](#http2)
+    - [HTTP2 in NginxProxyManager](#http2-enablement)
 
 ### Assumes use of the following containers
 * LSIO nextcloud with php8 (finally matured enough to be reliable IMO)
@@ -238,11 +238,16 @@ This can be resource intensive at first when setting up, but once it's churned t
       s6-setuidgid abc php8 -f /config/www/nextcloud/occ preview:generate-all -vvv
       ```
 
+#### HTTP2 Enablement
+
+This is enabled by default in NginxProxyManager, but worth it to confirm the HTTP/2 switch is enabled, just in case - external connectivity on modern browsers will likely throw a warning if this isn't set to enabled regardless though, so you've probably already got this covered.
 
 
+*******
 
+*******
 
-
+*******
 
 
 ***** EXTRA / BONUS *****
@@ -280,9 +285,7 @@ This can be resource intensive at first when setting up, but once it's churned t
 
 		s6-setuidgid abc php8 -f /config/scripts/photo-name-to-create-date.sh /data/USERNAME/files/Photos
 
-#### HTTP2 Enablement
 
-This is enabled by default in NginxProxyManager, but worth it to confirm the HTTP/2 switch is enabled, just in case - external connectivity on modern browsers will likely throw a warning if this isn't set to enabled regardless though, so you've probably already got this covered.
 
 
 <NOT DONE, further documentation needed!!!>
