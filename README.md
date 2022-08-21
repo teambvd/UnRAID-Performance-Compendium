@@ -10,6 +10,7 @@ This will never be exhaustive, conclusive, or even finished (lol)... But with an
 
 ### Index
 * General
+  * [Why would we want ZFS on UnRAID? What can we do with it?](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/WhyZfsOnUnRAID.md)
   * [SR-IOV on UnRAID](https://forums.unraid.net/topic/103323-how-to-using-sr-iov-in-unraid-with-1gb10gb40gb-network-interface-cards-nics/)
   * [Common issues/questions/general information related to ZFS on UnRAID](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/commonIssues.md)
     * [Hosting the Docker Image on ZFS](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/DockerImageOnZFS.md)
