@@ -6,6 +6,7 @@
   * [Get total number of inotify user watches used](#get-total-number-of-inotify-user-watches-used)
     + [List all current inotify users and totals](#list-all-current-inotify-users-and-totals)
   * [Start or stop the array from the CLI](#start-or-stop-the-array-from-the-cli)
+  * [Spin down all drives in the array](#spin-down-all-drives-in-the-array)
 - [General Linux stuff](#general-linux-stuff)
   * [List top 10 biggest files in all sub-dirs of current directory](#list-top-10-biggest-files-in-all-sub-dirs-of-current-directory)
   * [Bulk Downloading from Archive.org](#bulk-downloading-from-archivedotorg)
@@ -75,6 +76,13 @@ wget -qO /dev/null http://localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d
   sdspin sdX up
   ```
 
+### Spin down all drives in the array
+
+* You can choose to forcefully spin down all drives. If there's an active session, no worries - they may experience a temporary interruption, but the drive needed will automatically spin back up:
+  ```bash
+  for dev in /dev/sd?; do /usr/local/sbin/emcmd cmdSpindown="$(grep -zoP "(?<=name=\")[a-z0-9]+(?=\"\ndevice=\"${dev: -3})" /var/local/emhttp/disks.ini | tr -d '\0')"; done
+   ```
+
 ## General Linux stuff
 
 (that works just the same on UnRAID)
@@ -134,5 +142,3 @@ make_table()
 ```bash
 kill -9 $(smbstatus | grep BVDMBP | grep timemac | cut -d' ' -f1 | uniq)
 ```
-
-SnagIt
