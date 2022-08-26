@@ -59,7 +59,7 @@ mariadb:
 
 ```bash
 innodb_doublewrite=0
-innodb_checksum_algorithm=none
+innodb_checksum_algorithm=crc32
 innodb_flush_neighbors=0
 innodb_use_native_aio=0
 innodb_use_atomic_writes=0
