@@ -1,12 +1,32 @@
 ## Common Issues
 
 **Table of Contents**
+- [Game stutters when using ZFS on UnRAID](#game-stutters-when-using-zfs-on-unraid)
 - [My zpool is busy but I cant tell why](#my-zpool-is-busy-but-i-cant-tell-why)
   * [Customizing UnRAIDs CLI/shell, and running commands natively](#customizing-unraids-cli-and-running-commands-natively)
 - [Unable to modify filesets status](#unable-to-modify-filesets-status)
   * [Sledgehammer approach](#sledgehammer-approach)
-- [Dataset is busy](#dataset-is-busy)
+  * [Dataset is busy](#dataset-is-busy)
   * [Dealing with PID Whackamole](#dealing-with-pid-whackamole)
+
+### Game stutters when using ZFS on UnRAID
+
+In addition to all the '[normal](https://www.youtube.com/watch?v=miYUGWq6l24)' things you should [go through](https://www.youtube.com/watch?v=A2dkrFKPOyw) in order to ensure a [low latency gaming](https://www.youtube.com/watch?v=QlTVANDndpM) experience on UnRAID, you need to take some additional steps to attempt to further restrict the opportunities for the kernel to use the CPU's you're attempting to isolate for VM usage. Unfortunately ZFS [doesn't properly respect the isolcpus](https://github.com/openzfs/zfs/issues/8908) value alone, so some further steps are necessary.
+
+For reference, I've copied my `syslinux.cfg` configuration below, where my intention is to isolate the last 4 cores of a 16 core CPU:
+
+```bash
+label Unraid OS
+  menu default
+  kernel /bzimage
+  append initrd=/bzroot nomodeset mitigations=off amd_iommu=on isolcpus=12-15,28-31 nohz_full=12-15,28-31 rcu_nocbs=12-15,28-31
+```
+
+This was all that was needed for my threadripper 3955wx; looking at the CPU topology, I'm restricting all cores of a single CCX:
+
+![3955wx](https://www.servethehome.com/wp-content/uploads/2021/04/AMD-Threadripper-Pro-3955WX-Topology.jpg)
+
+You can see a really great video on how this topology image is generated in [SpaceInvader's video])https://www.youtube.com/watch?v=14dvDX17GH0), but if you don't have a multi-cpu or multi-chiplet CPU (which you could tell by generating the topology image as in the video), then you may need to take take some [additional steps](https://github.com/openzfs/zfs/issues/8908#issuecomment-1066046587).
 
 ### My zpool is busy but I cant tell why
 
@@ -73,7 +93,7 @@ zfs destroy tank/newFilesetName
 # be cognizant of potential impact on nested filesets and their mountpoints, such as tank/datasetName/datsetChileName
 ```
 
-### Dataset is busy
+#### Dataset is busy
 
 * This usually due to a process (PID) using that fileset or some part of it's contents. You can verify whether the below example, where I have my pool `wd` mounted to `mnt` and am trying to figure out what's using my `nginx` container:
   ```bash
