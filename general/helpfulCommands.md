@@ -95,10 +95,41 @@ find $PWD -type f -printf '%s %p\n' | sort -nr | head -10
 
 ### Bulk Downloading from archiveDOTorg
 
-* Download files from archiveDOTorg based on listed output (e.g. get all iso, zip, and 7z files in this case)
+* Download files from archiveDOTorg based on listed output (e.g. get all iso, zip, and 7z files in this case). This option is typically fine if you're not working with the Internet Archive a great deal, and only occasionally pull the odd thing down every once in a while:
 ```bash
 wget -A iso,zip,7z -m -p -E -k -K -np https://archive.org/download/GCUSRVZ-Arquivista
 ```
+
+* If you're doing this any kind of frequently though, make it easy on yourself and install the [Internet Archive's command line tool](https://archive.org/developers/internetarchive/installation.html#binaries) (direct link to download page for their binaries). Once saved onto the server (wherever it's going to live permanently), use the same method described in [this section](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/general/commonIssues.md#customizing-unraids-cli-and-running-commands-natively) of the 'Common Issues' page to make it act as a 'native' unraid CLI command.
+ 	* Now that you've 'installed' (sorta... semantics!) the `ia` cli tool, you can download at your leisure. Their [reference section](https://archive.org/developers/internetarchive/cli.html#) has some good starting points, but just to give you an idea of the power you have available... Lets just say you decided you want every PS2 game ever released in the U.S. - you search the archive, and it seems like [it's in 3 parts](https://archive.org/search.php?query=title%3A%28Playstation+2%29+AND+creator%3A%28AlvRo%29&sort=titleSorter). The links look like:
+	  `https://archive.org/details/ps2usaredump1`
+	  
+  * You *could* just type in three separate terminal windows
+    ```bash
+    ia download gamecollectionlinks
+    # hey, that was fast!
+    ia download ps2usaredump1
+    # now wait a long time
+    ia download ps2usaredump1_20200816_1458
+    # ugh, wait some more
+    ia download httpsarchive.orgdetailsps2usaredump3
+    # great, now maybe my great grand-kids will get to enjoy em at least
+    ```
+    
+  * Or instead, you could install the `parallel` utility from the `nerd pack`,  and make the server do all the work for you at once (albeit, without the pretty progress bars, if you care about that kind of thing...). **Be sure you're already in the directory you want to download the data to before executing of course!**
+  ```bash
+  /path/to/ia search "ps2usaredump1" --itemlist | parallel '/path/to/ia download {} --checksum --retries 10'
+  ```
+    * You're now downloading all three at once, and in a single window - hope you've got enough space on your cache drive(s)! Do note, you will likely need to specify the full actual path of the ia tool regardless of however you've made the tool available to be called directly (where we just called `ia download` above), as the `parallel` command doesn't run ia directly as your account/user. To explain the command (see links above for full description plz)
+		  * At first we have to search for the "ps2usaredump1" collection (from the URL above), then listing its items. If you ran the command on it's own, it'd show
+	     ```bash
+      gamecollectionlinks
+      httpsarchive.orgdetailsps2usaredump3
+      ps2usaredump1
+      ps2usaredump1_20200816_1458
+      ```
+    * Now that we have our list, we call parallel to 'do this for each' (e.g. insert each of the 4 lines output in place of the `{}`). The `--checksum` argument looks for any  existing files of the same name, compares the two, and only downloads if the local copy doesn't match the archive. Adding `--retries 10` does just what it sounds like; if the connection times out, try again (x10). These are both especially helpful if you're on a typical North American ISP that tends to like to randomly drop offline for absolutely no reason whatsoever.
+
 
 ### Remove the first 7 characters from all files in a dir
 
