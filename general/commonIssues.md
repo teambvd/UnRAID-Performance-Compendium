@@ -26,7 +26,7 @@ This was all that was needed for my threadripper 3955wx; looking at the CPU topo
 
 ![3955wx](https://www.servethehome.com/wp-content/uploads/2021/04/AMD-Threadripper-Pro-3955WX-Topology.jpg)
 
-You can see a really great video on how this topology image is generated in [SpaceInvader's video])https://www.youtube.com/watch?v=14dvDX17GH0), but if you don't have a multi-cpu or multi-chiplet CPU (which you could tell by generating the topology image as in the video), then you may need to take take some [additional steps](https://github.com/openzfs/zfs/issues/8908#issuecomment-1066046587).
+You can see a really great video on how this topology image is generated in [SpaceInvader's video](https://www.youtube.com/watch?v=14dvDX17GH0), but if you don't have a multi-cpu or multi-chiplet CPU (which you could tell by generating the topology image as in the video), then you may need to take take some [additional steps](https://github.com/openzfs/zfs/issues/8908#issuecomment-1066046587).
 
 ### My zpool is busy but I cant tell why
 
