@@ -1,5 +1,7 @@
 # ***Ombi on ZFS***
 
+### !!! FYI - I've moved everything over to Jellyseer at this point as the UI is **FAR** more responsive than Ombi - even with postgres+ombi, it's easily orders of magnitude more efficient. This doc is remaining for reference, but may grow outdated as time moves on !!!
+
 ## "Ombi's UI just doesn't seem  to work anymore..."
 
 Many have noticed that over time and as your media library continues to grow, you eventually get to the point that it just seems Ombi's no longer fit for purpose. Browsing the UI is fine, but then when your users try to make any new requests, they just never get saved, or perhaps parts of it get saved (e.g. your manually added sonarr 'custom parameters', but not the request approval itself), and so on.
