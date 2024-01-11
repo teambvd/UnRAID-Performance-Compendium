@@ -31,6 +31,7 @@
 - Check DB integrity (must use `Plex SQLite`, not standard `sqlite3` package) - clean run should show result `ok`
   ```bash
   cd "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases"
+  
   /usr/lib/plexmediaserver/Plex\ SQLite  com.plexapp.plugins.library.db "PRAGMA integrity_check;"
   ```
 - Run repair on the DB
