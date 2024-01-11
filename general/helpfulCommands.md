@@ -22,15 +22,19 @@
 - Increase memory allocation to the container (docker extra params)
 ``--shm-size=2048m`
 - Location of database
-``/mnt/wd/dock/plex/Library/Application Support/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db`
-- Stopping plex service (LSIO container)
+``<appdata-directory>/Library/Application Support/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db`
+- Stopping plex service (LSIO container) - required prior to running repair, undertaken within the container (`docker exec -it plex /bin/bash`)
   ```bash
-  cd /var/run/s6/services
-  s6-svc -d plex
+  cd /run/service/
+  s6-svc -d svc-plex
+  ```
+- Check DB integrity (must use `Plex SQLite`, not standard `sqlite3` package) - clean run should show result `ok`
+  ```bash
+  cd "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases"
+  /usr/lib/plexmediaserver/Plex\ SQLite  com.plexapp.plugins.library.db "PRAGMA integrity_check;"
   ```
 - Run repair on the DB
-  ```bash
-  cd "/config/Library/Application Support/Plex Media Server/Plug-in Support/Databases" 
+  ```bash 
   "/usr/lib/plexmediaserver/Plex\ SQLite" com.plexapp.plugins.library.db ".output recover.out" ".recover"
   ```
 
@@ -70,6 +74,7 @@ wget -qO /dev/null http://localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d
 ```
 
 ### Spin up a drive manually
+
 * Manually spinning down a drive
   ```bash
   #where 'X' equals your drive letter
@@ -137,10 +142,11 @@ wget -A iso,zip,7z -m -p -E -k -K -np https://archive.org/download/GCUSRVZ-Arqui
 
 ### Get a breakdown of file sizes for a given directory including subdirs
 
-  note - this can take a **very** long time to complete if you've got a ton of tiny little files
+  * Note - this can take a **very** long time to complete if you've got a ton of tiny little files
   ```bash
   find /mnt/whatever/directory -type f -print0 | xargs -0 ls -l | awk '{ n=int(log($5)/log(2)); if (n<10) { n=10; } size[n]++ } END { for (i in size) printf("%d %d\n", 2^i, size[i]) }' | sort -n | awk 'function human(x) { x[1]/=1024; if (x[1]>=1024) { x[2]++; human(x) } } { a[1]=$1; a[2]=0; human(a); printf("%3d%s: %6d\n", a[1],substr("kMGTEPYZ",a[2]+1,1),$2) }'
   ```
+  * Would recommend doing this in a `tmux` pane or `screen` session, just so it survives any potential disconnect
 
 ## Personal tools stuff
 
