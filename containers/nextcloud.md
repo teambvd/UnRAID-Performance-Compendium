@@ -25,7 +25,7 @@ This doc goes through the various performance-related tips and tweaks I've compi
 * redis (`official alpine`)
 * postgres 15 (`official alpine`) - However pg16 should be sufficiently stable at current if deploying from scratch
 * and NginxProxyManager (`official`) as double proxy
-(if already using rabbitmq, for something like homeassistant or w/e, you can use that same instance for onlyoffice here too. Extra credit or some crap, brown noser.)
+* (if already using rabbitmq, for something like homeassistant or w/e, you can use that same instance for onlyoffice here too. Extra credit or some crap, brown noser.)
 
 #### Additional Notes
 
