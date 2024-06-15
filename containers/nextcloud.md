@@ -16,12 +16,14 @@ This doc goes through the various performance-related tips and tweaks I've compi
     - [The Deck app is dumb](#the-deck-app-is-dumb)
     - [Create previews for numerous additional filetypes](#create-previews-for-numerous-additional-filetypes)
     - [HTTP2 in NginxProxyManager](#http2-enablement)
+    - [Some notes on Cloudflare](#some-notes-on-cloudflare)
+       + [Bypassing site rules](#bypassing-site-rules)
 
 ### Assumes use of the following containers
-* LSIO nextcloud with php8 (finally matured enough to be reliable IMO)
-* xternet onlyoffice image
+* LSIO nextcloud with php8
+* xternet onlyoffice image (manually updated from within container - I know, terrible, I'm lazy I guess :-\ )
 * redis (`official alpine`)
-* postgres 13 (`official alpine`) 
+* postgres 15 (`official alpine`) - However pg16 should be sufficiently stable at current if deploying from scratch
 * and NginxProxyManager (`official`) as double proxy
 (if already using rabbitmq, for something like homeassistant or w/e, you can use that same instance for onlyoffice here too. Extra credit or some crap, brown noser.)
 
@@ -156,7 +158,7 @@ The problem here is that nextcloud's appdata (where it puts all data related to 
   /mnt/user/nxstore/appdata_ocbgah4z0nhr/preview
   ```
 * We'll now set up mover tuning to ignore moving anything within our preview dir using `Ignore files listed inside of a text file` and specifying the file we just created:
-  ![MoverTuning](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/containers/moverTuning.png)
+  ![MoverTuning](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/containers/img/moverTuning.png)
 
 **IMPORTANT**
 You can set mover tuning to leave the entire appdata directory on the cache, but should **ONLY** do this if you've a redundant cache pool (mirrored, raid5/6) as not all data within the appdata dir is 'expendable' in the same way the pre-generated previews are. 
@@ -242,6 +244,20 @@ This can be resource intensive at first when setting up, but once it's churned t
 
 This is enabled by default in NginxProxyManager, but worth it to confirm the HTTP/2 switch is enabled, just in case - external connectivity on modern browsers will likely throw a warning if this isn't set to enabled regardless though, so you've probably already got this covered.
 
+#### Some notes on Cloudflare
+
+While I won't go in to the full setup/config here (tons of great guides on that available elsewhere), and it's definitely a fantastic tool for both protecting yourself, as well as speeding up (most) websites, there are various features and functionality CF enables / makes available which can cause some severe issues with Nextcloud. Some examples include the Auto-Minify functions for CSS and Javascript, caching content (counterintuitive, I know!), and some compression types (which don't always behave properly with PHP).
+
+We don't want CF caching anything from Nextcloud for a couple reasons:
+* We already generate lower resolution previews ourselves (or should at least - see above). Having CF cache already tiny files has limited (if any) benefit, with the possible down side of rendering out-of-date content (which can result in weird rendering issues)
+* From a security perspective, it's usually not a great idea to have someone else hosting your images, which is effectively what's happening here, except in this case, you're not able to encrypt them from view as you would with a backup. Using CF caching for your private and possibly sensitive files increases your datas surface area.
+
+##### Bypassing site rules
+
+In order to keep the benefits of various CF tools / components (brotli compression, caching for static asset sites, IP protection, etc) while still hosting Nextcloud under the same domain, we can set up a page rule in order to have the site we're hosting Nextcloud under bypass those potentially problematic settings.
+
+Under "Rules" -> "Page Rules", we'll create a new rule specifying our Nextcloud location (e.g. nextcloud.mydomain.com), and choosing to both bypass caching as well as "Disable Performance" (more like "Disable Suffering"):
+![SiteRules](https://github.com/teambvd/UnRAID-Performance-Compendium/blob/main/containers/img/site-rules.png?raw=true)
 
 *******
 
