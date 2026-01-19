@@ -57,12 +57,12 @@ There are several broad strokes I take with regards to any database implementati
 * Configure the dataset where your postgres data will reside with properties tuned specifically for pg's read/write behavior:
  
   ```bash
-  zfs set compression=zstd-3 recordsize=16K atime=off logbias=throughput primarycache=metadata redundantmetadata=most zpool/dataset
+  zfs set compression=zstd-3 recordsize=16K atime=off logbias=throughput primarycache=metadata redundant_metadata=most zpool/dataset
   ```
 
 As with SQLite, we use the same compression and logbias settings, but this time we're setting the primarycache to `metadata`. This means we're caching the filesystem pointers that say 'this is where the data is', but not the data itself. 
 
-**Note**, the `redundantmetadata` setting should only be modified in a pool with redundancy (mirror, raidz, etc), and where `checksums` have not been disabled (it's on by default).
+**Note**, the `redundant_metadata` setting should only be modified in a pool with redundancy (mirror, raidz, etc), and where `checksums` have not been disabled (it's on by default).
 
 * Edit your go file (nano /boot/config/go) adding:
 
